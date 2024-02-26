@@ -46,9 +46,9 @@ else:
             "sex",
         ]
     ]
-    features = pd.get_dummies(features)
+    features_dummies = pd.get_dummies(features)
     output, unique_penguin_mapping = pd.factorize(output)
-    x_train, x_test, y_train, y_test = train_test_split(features, output, test_size=0.8)
+    x_train, x_test, y_train, y_test = train_test_split(features_dummies, output, test_size=0.8)
     rfc = RandomForestClassifier(random_state=15)
     rfc.fit(x_train, y_train)
     y_pred = rfc.predict(x_test)
@@ -99,7 +99,8 @@ new_prediction = rfc.predict(
 )
 st.subheader("Predicting Your Penguin's Species:")
 prediction_species = unique_penguin_mapping[new_prediction][0]
-st.write(f"We predict your penguin is of the {prediction_species} species")
+st.write(f"We predict your penguin is of the {prediction_species} species.")
+st.subheader(f"{prediction_species}")
 st.write(
     """We used a machine learning
     (Random Forest) model to predict the
@@ -107,7 +108,26 @@ st.write(
     prediction are ranked by relative
     importance below."""
 )
-st.image("feature_importance.png")
+
+if penguin_file is None:
+    st.image("feature_importance.png")
+else:
+    features = penguin_df[
+        [
+            "island",
+            "bill_length_mm",
+            "bill_depth_mm",
+            "flipper_length_mm",
+            "body_mass_g",
+            "sex",
+        ]
+    ]
+    fig, ax = plt.subplots()
+    ax = sns.barplot(x=rfc.feature_importances_, y=features.columns)
+    plt.title("Which features are the most important for species prediction?")
+    plt.xlabel("Importance")
+    plt.ylabel("Feature")
+    plt.tight_layout()
 
 st.write(
     """Below are the histograms for each
@@ -117,18 +137,28 @@ The vertical line represents the inputted value."""
 
 fig, ax = plt.subplots()
 ax = sns.displot(x=penguin_df["bill_length_mm"], hue=penguin_df["species"])
-plt.axvline(bill_length)
+plt.axvline(bill_length, color="red")
 plt.title("Bill Length by Species")
 st.pyplot(ax)
 
 fig, ax = plt.subplots()
 ax = sns.displot(x=penguin_df["bill_depth_mm"], hue=penguin_df["species"])
-plt.axvline(bill_depth)
+plt.axvline(bill_depth, color="red")
 plt.title("Bill Depth by Species")
 st.pyplot(ax)
 
 fig, ax = plt.subplots()
 ax = sns.displot(x=penguin_df["flipper_length_mm"], hue=penguin_df["species"])
-plt.axvline(flipper_length)
+plt.axvline(flipper_length, color="red")
 plt.title("Flipper Length by Species")
 st.pyplot(ax)
+
+fig, ax = plt.subplots()
+ax = sns.displot(x=penguin_df["body_mass_g"], hue=penguin_df["species"])
+plt.axvline(body_mass, color="red")
+plt.title("Body Mass by Species")
+st.pyplot(ax)
+
+st.write(penguin_df.head())
+
+st.write(unique_penguin_mapping)
